@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Plus, Trash2, Edit3, Save, X, Calendar, User, Flag, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, X, Calendar, User, Flag, GripVertical, Settings } from "lucide-react";
 
 /**
  * Kanban Board — React + Tailwind + Vite (JavaScript)
@@ -205,7 +205,20 @@ export default function KanbanBoard() {
   const [editingCardId, setEditingCardId] = useState(null);
   const [dragColId, setDragColId] = useState(null);
   const [dragCardInfo, setDragCardInfo] = useState(null); // {cardId, fromColumnId}
-
+  const [visibleFields, setVisibleFields] = useState(() => {
+  // Cargar desde localStorage si existía
+  const saved = localStorage.getItem("kanban-visible-fields");
+    return saved
+      ? JSON.parse(saved)
+      : { description: true, assignee: true, dueDate: true, priority: true };
+  });
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Persistir configuración
+  useEffect(() => {
+    localStorage.setItem("kanban-visible-fields", JSON.stringify(visibleFields));
+  }, [visibleFields]);
+  
   // LocalStorage persistence
   useEffect(() => {
     const saved = localStorage.getItem("kanban-state");
@@ -332,6 +345,13 @@ export default function KanbanBoard() {
             </div>
           )}
           <button
+            onClick={() => setShowSettings(true)}
+            className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" /> Configurar vista
+          </button>
+
+          <button
             onClick={() => {
               localStorage.removeItem("kanban-state");
               dispatch({ type: ACTIONS.INIT, payload: sampleState });
@@ -349,6 +369,7 @@ export default function KanbanBoard() {
             key={columnId}
             column={state.columns[columnId]}
             cards={state.columns[columnId].cardIds.map((id) => state.cards[id]).filter(Boolean)}
+            visibleFields={visibleFields}
             onAddCard={() => dispatch({ type: ACTIONS.ADD_CARD, payload: { columnId } })}
             onDeleteColumn={() => {
               const ok = confirm("¿Eliminar columna y sus tarjetas?");
@@ -379,6 +400,39 @@ export default function KanbanBoard() {
           }}
         />
       )}
+
+         {showSettings && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center">
+             <div className="absolute inset-0 bg-black/30" onClick={() => setShowSettings(false)} />
+             <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
+               <h3 className="text-lg font-semibold mb-4">Campos visibles en las tarjetas</h3>
+               <div className="space-y-3">
+                 {Object.keys(visibleFields).map((field) => (
+                   <label key={field} className="flex items-center gap-2">
+                     <input
+                       type="checkbox"
+                       checked={visibleFields[field]}
+                       onChange={(e) =>
+                         setVisibleFields({ ...visibleFields, [field]: e.target.checked })
+                       }
+                       className="h-4 w-4"
+                     />
+                     <span className="capitalize">{field}</span>
+                   </label>
+                 ))}
+               </div>
+               <div className="mt-6 flex justify-end">
+                 <button
+                   onClick={() => setShowSettings(false)}
+                   className="rounded-xl bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+                 >
+                   Cerrar
+                 </button>
+               </div>
+             </div>
+           </div>
+         )}
+
     </div>
   );
 }
@@ -388,6 +442,7 @@ function ColumnView({
   column,
   cards,
   onAddCard,
+  visibleFields,
   onDeleteColumn,
   onRename,
   onCardEdit,
@@ -487,26 +542,32 @@ function ColumnView({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-              {card.assignee && (
+              {visibleFields.assignee && card.assignee && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
                   <User className="h-3 w-3" /> {card.assignee}
                 </span>
               )}
-              {card.dueDate && (
+              {visibleFields.dueDate && card.dueDate && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
                   <Calendar className="h-3 w-3" /> {card.dueDate}
                 </span>
               )}
-              {card.priority && (
-                <span className={classNames(
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-                  card.priority === "High" && "bg-red-100 text-red-700",
-                  card.priority === "Medium" && "bg-amber-100 text-amber-700",
-                  card.priority === "Low" && "bg-emerald-100 text-emerald-700"
-                )}>
+              {visibleFields.priority && card.priority && (
+                <span
+                  className={classNames(
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
+                    card.priority === "High" && "bg-red-100 text-red-700",
+                    card.priority === "Medium" && "bg-amber-100 text-amber-700",
+                    card.priority === "Low" && "bg-emerald-100 text-emerald-700"
+                  )}
+                >
                   <Flag className="h-3 w-3" /> {card.priority}
                 </span>
               )}
+              {visibleFields.description && card.description && (
+                <p className="text-xs text-slate-500 mt-1 line-clamp-2">{card.description}</p>
+              )}
+              
             </div>
           </div>
         ))}
