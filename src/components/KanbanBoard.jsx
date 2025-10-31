@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Plus, Trash2, Edit3, Save, X, Calendar, User, Flag, GripVertical, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * Kanban Board — React + Tailwind + Vite (JavaScript)
@@ -379,28 +380,32 @@ export default function KanbanBoard() {
       </header>
 
       <div className="flex gap-4 overflow-x-auto pb-8">
-        {state.columnOrder.map((columnId) => (
-          <ColumnView
-            key={columnId}
-            column={state.columns[columnId]}
-            cards={state.columns[columnId].cardIds.map((id) => state.cards[id]).filter(Boolean)}
-            visibleFields={visibleFields}
-            onAddCard={() => setNewCardColumnId(columnId)}
-            onDeleteColumn={() => {
-              const ok = confirm("¿Eliminar columna y sus tarjetas?");
-              if (ok) dispatch({ type: ACTIONS.DELETE_COLUMN, payload: { id: columnId } });
-            }}
-            onRename={(title) => dispatch({ type: ACTIONS.RENAME_COLUMN, payload: { id: columnId, title } })}
-            onCardEdit={(id) => setEditingCardId(id)}
-            onCardDelete={(id) => dispatch({ type: ACTIONS.DELETE_CARD, payload: { id, fromColumnId: columnId } })}
-            onDragStart={(e) => onColDragStart(e, columnId)}
-            onDragOver={(e) => onColDragOver(e, columnId)}
-            onDragEnd={onColDragEnd}
-            onCardDragStart={onCardDragStart}
-            onCardDragOver={onCardDragOver}
-            onCardDrop={onCardDrop}
-          />
-        ))}
+        <AnimatePresence mode="popLayout">
+          {state.columnOrder.map((columnId) => (
+            <motion.div key={columnId} layout transition={{ layout: { duration: 0.25 } }}>
+              <ColumnView
+                key={columnId}
+                column={state.columns[columnId]}
+                cards={state.columns[columnId].cardIds.map((id) => state.cards[id]).filter(Boolean)}
+                visibleFields={visibleFields}
+                onAddCard={() => setNewCardColumnId(columnId)}
+                onDeleteColumn={() => {
+                  const ok = confirm("¿Eliminar columna y sus tarjetas?");
+                  if (ok) dispatch({ type: ACTIONS.DELETE_COLUMN, payload: { id: columnId } });
+                }}
+                onRename={(title) => dispatch({ type: ACTIONS.RENAME_COLUMN, payload: { id: columnId, title } })}
+                onCardEdit={(id) => setEditingCardId(id)}
+                onCardDelete={(id) => dispatch({ type: ACTIONS.DELETE_CARD, payload: { id, fromColumnId: columnId } })}
+                onDragStart={(e) => onColDragStart(e, columnId)}
+                onDragOver={(e) => onColDragOver(e, columnId)}
+                onDragEnd={onColDragEnd}
+                onCardDragStart={onCardDragStart}
+                onCardDragOver={onCardDragOver}
+                onCardDrop={onCardDrop}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {editingCardId && (
@@ -555,74 +560,90 @@ function ColumnView({
       </div>
 
       <div
-        className="flex flex-1 flex-col gap-2"
+        className="flex flex-1 flex-col gap-2 min-h-80"
         onDragOver={(e) => onCardDragOver(e, column.id, cards.length)}
         onDrop={(e) => {
-          e.stopPropagation(); // 🔥 previene doble llamada
+          e.stopPropagation();
           onCardDrop(e, column.id, cards.length);
         }}
       >
-        {cards.map((card, idx) => (
-          <div
-            key={card.id}
-            draggable
-            onDragStart={(e) => {
-              e.stopPropagation();
-              onCardDragStart(e, card.id, column.id, idx);
-            }}
-            onDragOver={(e) => onCardDragOver(e, column.id, idx)}
-            onDrop={(e) => onCardDrop(e, column.id, idx)}
-            className="group rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md"
-          >
-            <div className="mb-1 flex items-start justify-between gap-2">
-              <h3 className="line-clamp-2 text-sm font-medium">{card.title || "(Sin título)"}</h3>
-              <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                <button
-                  className="rounded-lg p-1 hover:bg-slate-100"
-                  title="Editar"
-                  onClick={() => onCardEdit(card.id)}
-                >
-                  <Edit3 className="h-4 w-4" />
-                </button>
-                <button
-                  className="rounded-lg p-1 hover:bg-slate-100"
-                  title="Eliminar"
-                  onClick={() => onCardDelete(card.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+        <AnimatePresence mode="popLayout">
+          {cards.map((card, idx) => (
+            <motion.div
+              key={card.id}
+              layout
+              layoutId={card.id}
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                onCardDragStart(e, card.id, column.id, idx);
+              }}
+              onDragOver={(e) => {
+                e.stopPropagation();
+                onCardDragOver(e, column.id, idx);
+              }}
+              onDrop={(e) => {
+                e.stopPropagation();
+                onCardDrop(e, column.id, idx);
+              }}
+              className="group rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md cursor-grab active:cursor-grabbing"
+              transition={{ layout: { duration: 0.25, ease: "easeInOut" } }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <div className="mb-1 flex items-start justify-between gap-2">
+                <h3 className="line-clamp-2 text-sm font-medium">{card.title || "(Sin título)"}</h3>
+                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    className="rounded-lg p-1 hover:bg-slate-100"
+                    title="Editar"
+                    onClick={() => onCardEdit(card.id)}
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="rounded-lg p-1 hover:bg-slate-100"
+                    title="Eliminar"
+                    onClick={() => onCardDelete(card.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-              {visibleFields.assignee && card.assignee && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
-                  <User className="h-3 w-3" /> {card.assignee}
-                </span>
-              )}
-              {visibleFields.dueDate && card.dueDate && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
-                  <Calendar className="h-3 w-3" /> {card.dueDate}
-                </span>
-              )}
-              {visibleFields.priority && card.priority && (
-                <span
-                  className={classNames(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-                    card.priority === "High" && "bg-red-100 text-red-700",
-                    card.priority === "Medium" && "bg-amber-100 text-amber-700",
-                    card.priority === "Low" && "bg-emerald-100 text-emerald-700"
-                  )}
-                >
-                  <Flag className="h-3 w-3" /> {card.priority}
-                </span>
-              )}
-              {visibleFields.description && card.description && (
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2">{card.description}</p>
-              )}
-              
-            </div>
-          </div>
-        ))}
+
+              {/* Campos visibles */}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                {visibleFields.assignee && card.assignee && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
+                    <User className="h-3 w-3" /> {card.assignee}
+                  </span>
+                )}
+                {visibleFields.dueDate && card.dueDate && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
+                    <Calendar className="h-3 w-3" /> {card.dueDate}
+                  </span>
+                )}
+                {visibleFields.priority && card.priority && (
+                  <span
+                    className={classNames(
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
+                      card.priority === "High" && "bg-red-100 text-red-700",
+                      card.priority === "Medium" && "bg-amber-100 text-amber-700",
+                      card.priority === "Low" && "bg-emerald-100 text-emerald-700"
+                    )}
+                  >
+                    <Flag className="h-3 w-3" /> {card.priority}
+                  </span>
+                )}
+                {visibleFields.description && card.description && (
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">{card.description}</p>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
       </div>
 
       <button
