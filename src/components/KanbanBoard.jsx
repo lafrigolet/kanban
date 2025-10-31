@@ -97,103 +97,117 @@ const ACTIONS = {
 /** @param {BoardState} state @param {{type: string, payload?: any}} action */
 function reducer(state, action) {
   switch (action.type) {
-    case ACTIONS.INIT: {
-      return action.payload || state;
-    }
-    case ACTIONS.ADD_COLUMN: {
-      const id = uid();
-      const col = { id, title: action.payload?.title || "Nueva columna", cardIds: [] };
-      return {
-        ...state,
-        columns: { ...state.columns, [id]: col },
-        columnOrder: [...state.columnOrder, id],
-      };
-    }
-    case ACTIONS.RENAME_COLUMN: {
-      const { id, title } = action.payload;
-      return {
-        ...state,
-        columns: { ...state.columns, [id]: { ...state.columns[id], title } },
-      };
-    }
-    case ACTIONS.DELETE_COLUMN: {
-      const { id } = action.payload;
-      const { [id]: removed, ...restCols } = state.columns;
-      const newOrder = state.columnOrder.filter((c) => c !== id);
-      // also delete cards contained in this column
-      const cardsToDelete = new Set(removed?.cardIds || []);
-      const newCards = Object.fromEntries(
-        Object.entries(state.cards).filter(([cid]) => !cardsToDelete.has(cid))
-      );
-      return { ...state, columns: restCols, columnOrder: newOrder, cards: newCards };
-    }
-    case ACTIONS.REORDER_COLUMNS: {
-      return { ...state, columnOrder: action.payload.order };
-    }
-    case ACTIONS.ADD_CARD: {
-      const { columnId } = action.payload;
-      const id = uid();
-      const card = {
-        id,
-        title: "Nueva tarea",
-        description: "",
-        assignee: "",
-        dueDate: "",
-        priority: "",
-        createdAt: Date.now(),
-      };
-      return {
-        ...state,
-        cards: { ...state.cards, [id]: card },
-        columns: {
-          ...state.columns,
-          [columnId]: {
-            ...state.columns[columnId],
-            cardIds: [...state.columns[columnId].cardIds, id],
-          },
+  case ACTIONS.INIT: {
+    return action.payload || state;
+  }
+  case ACTIONS.ADD_COLUMN: {
+    const id = uid();
+    const col = { id, title: action.payload?.title || "Nueva columna", cardIds: [] };
+    return {
+      ...state,
+      columns: { ...state.columns, [id]: col },
+      columnOrder: [...state.columnOrder, id],
+    };
+  }
+  case ACTIONS.RENAME_COLUMN: {
+    const { id, title } = action.payload;
+    return {
+      ...state,
+      columns: { ...state.columns, [id]: { ...state.columns[id], title } },
+    };
+  }
+  case ACTIONS.DELETE_COLUMN: {
+    const { id } = action.payload;
+    const { [id]: removed, ...restCols } = state.columns;
+    const newOrder = state.columnOrder.filter((c) => c !== id);
+    // also delete cards contained in this column
+    const cardsToDelete = new Set(removed?.cardIds || []);
+    const newCards = Object.fromEntries(
+      Object.entries(state.cards).filter(([cid]) => !cardsToDelete.has(cid))
+    );
+    return { ...state, columns: restCols, columnOrder: newOrder, cards: newCards };
+  }
+  case ACTIONS.REORDER_COLUMNS: {
+    return { ...state, columnOrder: action.payload.order };
+  }
+  case ACTIONS.ADD_CARD: {
+    const { columnId } = action.payload;
+    const id = uid();
+    const card = {
+      id,
+      title: "Nueva tarea",
+      description: "",
+      assignee: "",
+      dueDate: "",
+      priority: "",
+      createdAt: Date.now(),
+    };
+    return {
+      ...state,
+      cards: { ...state.cards, [id]: card },
+      columns: {
+        ...state.columns,
+        [columnId]: {
+          ...state.columns[columnId],
+          cardIds: [...state.columns[columnId].cardIds, id],
         },
-      };
-    }
-    case ACTIONS.UPDATE_CARD: {
-      const { id, patch } = action.payload;
-      return { ...state, cards: { ...state.cards, [id]: { ...state.cards[id], ...patch } } };
-    }
-    case ACTIONS.DELETE_CARD: {
-      const { id, fromColumnId } = action.payload;
-      const { [id]: removed, ...restCards } = state.cards;
-      const col = state.columns[fromColumnId];
-      const newIds = col.cardIds.filter((cid) => cid !== id);
-      return {
-        ...state,
-        cards: restCards,
-        columns: { ...state.columns, [fromColumnId]: { ...col, cardIds: newIds } },
-      };
-    }
-    case ACTIONS.MOVE_CARD: {
-      const { cardId, fromColumnId, toColumnId, toIndex } = action.payload;
-      if (!state.columns[fromColumnId] || !state.columns[toColumnId]) return state;
-      const from = state.columns[fromColumnId];
-      const to = state.columns[toColumnId];
-      const fromIds = from.cardIds.filter((id) => id !== cardId);
-      const toIds = [...to.cardIds];
-      const insertAt = Math.min(Math.max(0, toIndex ?? toIds.length), toIds.length);
-      toIds.splice(insertAt, 0, cardId);
-      return {
-        ...state,
-        columns: {
-          ...state.columns,
-          [fromColumnId]: { ...from, cardIds: fromIds },
-          [toColumnId]: { ...to, cardIds: toIds },
+      },
+    };
+  }
+  case ACTIONS.ADD_EXISTING_CARD: {
+    const { columnId, card } = action.payload;
+    return {
+      ...state,
+      cards: { ...state.cards, [card.id]: card },
+      columns: {
+        ...state.columns,
+        [columnId]: {
+          ...state.columns[columnId],
+          cardIds: [...state.columns[columnId].cardIds, card.id],
         },
-      };
-    }
-    case ACTIONS.REORDER_CARDS_IN_COLUMN: {
-      const { columnId, newOrder } = action.payload;
-      const col = state.columns[columnId];
-      return { ...state, columns: { ...state.columns, [columnId]: { ...col, cardIds: newOrder } } };
-    }
-    default:
-      return state;
+      },
+    };
+  }
+  case ACTIONS.UPDATE_CARD: {
+    const { id, patch } = action.payload;
+    return { ...state, cards: { ...state.cards, [id]: { ...state.cards[id], ...patch } } };
+  }
+  case ACTIONS.DELETE_CARD: {
+    const { id, fromColumnId } = action.payload;
+    const { [id]: removed, ...restCards } = state.cards;
+    const col = state.columns[fromColumnId];
+    const newIds = col.cardIds.filter((cid) => cid !== id);
+    return {
+      ...state,
+      cards: restCards,
+      columns: { ...state.columns, [fromColumnId]: { ...col, cardIds: newIds } },
+    };
+  }
+  case ACTIONS.MOVE_CARD: {
+    const { cardId, fromColumnId, toColumnId, toIndex } = action.payload;
+    if (!state.columns[fromColumnId] || !state.columns[toColumnId]) return state;
+    const from = state.columns[fromColumnId];
+    const to = state.columns[toColumnId];
+    const fromIds = from.cardIds.filter((id) => id !== cardId);
+    const toIds = [...to.cardIds];
+    const insertAt = Math.min(Math.max(0, toIndex ?? toIds.length), toIds.length);
+    toIds.splice(insertAt, 0, cardId);
+    return {
+      ...state,
+      columns: {
+        ...state.columns,
+        [fromColumnId]: { ...from, cardIds: fromIds },
+        [toColumnId]: { ...to, cardIds: toIds },
+      },
+    };
+  }
+  case ACTIONS.REORDER_CARDS_IN_COLUMN: {
+    const { columnId, newOrder } = action.payload;
+    const col = state.columns[columnId];
+    return { ...state, columns: { ...state.columns, [columnId]: { ...col, cardIds: newOrder } } };
+  }
+  default:
+    return state;
   }
 }
 
@@ -206,13 +220,14 @@ export default function KanbanBoard() {
   const [dragColId, setDragColId] = useState(null);
   const [dragCardInfo, setDragCardInfo] = useState(null); // {cardId, fromColumnId}
   const [visibleFields, setVisibleFields] = useState(() => {
-  // Cargar desde localStorage si existía
-  const saved = localStorage.getItem("kanban-visible-fields");
+    // Cargar desde localStorage si existía
+    const saved = localStorage.getItem("kanban-visible-fields");
     return saved
       ? JSON.parse(saved)
       : { description: true, assignee: true, dueDate: true, priority: true };
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [newCardColumnId, setNewCardColumnId] = useState(null);
   
   // Persistir configuración
   useEffect(() => {
@@ -287,10 +302,10 @@ export default function KanbanBoard() {
   const onCardDrop = (e, toColumnId, toIndex) => {
     e.preventDefault();
     e.stopPropagation(); // 🛑 evita que el drop burbujee a otros elementos
-
+    
     // Evita ejecución doble
     if (e.dataTransfer.dropEffect === "none") return;
-
+    
     let data;
     try {
       data = JSON.parse(e.dataTransfer.getData("text/plain"));
@@ -298,22 +313,22 @@ export default function KanbanBoard() {
       data = dragCardInfo;
     }
     if (!data) return;
-
+    
     const { cardId, fromColumnId } = data;
-
+    
     if (fromColumnId === toColumnId && dragCardInfo?.fromIndex === toIndex) {
       return; // no mover si está en el mismo lugar
     }
-
+    
     dispatch({
       type: ACTIONS.MOVE_CARD,
       payload: { cardId, fromColumnId, toColumnId, toIndex },
     });
-
+    
     setDragCardInfo(null);
     e.dataTransfer.dropEffect = "none"; // marca el drop como procesado ✅
   };
-
+  
   return (
     <div className="min-h-screen w-full bg-slate-50 p-6">
       <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -348,7 +363,7 @@ export default function KanbanBoard() {
             onClick={() => setShowSettings(true)}
             className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white flex items-center gap-2"
           >
-            <Settings className="h-4 w-4" /> Configurar vista
+            <Settings className="h-4 w-4" /> Configurar tarjeta
           </button>
 
           <button
@@ -370,7 +385,7 @@ export default function KanbanBoard() {
             column={state.columns[columnId]}
             cards={state.columns[columnId].cardIds.map((id) => state.cards[id]).filter(Boolean)}
             visibleFields={visibleFields}
-            onAddCard={() => dispatch({ type: ACTIONS.ADD_CARD, payload: { columnId } })}
+            onAddCard={() => setNewCardColumnId(columnId)}
             onDeleteColumn={() => {
               const ok = confirm("¿Eliminar columna y sus tarjetas?");
               if (ok) dispatch({ type: ACTIONS.DELETE_COLUMN, payload: { id: columnId } });
@@ -378,11 +393,9 @@ export default function KanbanBoard() {
             onRename={(title) => dispatch({ type: ACTIONS.RENAME_COLUMN, payload: { id: columnId, title } })}
             onCardEdit={(id) => setEditingCardId(id)}
             onCardDelete={(id) => dispatch({ type: ACTIONS.DELETE_CARD, payload: { id, fromColumnId: columnId } })}
-            // Drag & drop (columns)
             onDragStart={(e) => onColDragStart(e, columnId)}
             onDragOver={(e) => onColDragOver(e, columnId)}
             onDragEnd={onColDragEnd}
-            // Drag & drop (cards)
             onCardDragStart={onCardDragStart}
             onCardDragOver={onCardDragOver}
             onCardDrop={onCardDrop}
@@ -401,38 +414,77 @@ export default function KanbanBoard() {
         />
       )}
 
-         {showSettings && (
-           <div className="fixed inset-0 z-50 flex items-center justify-center">
-             <div className="absolute inset-0 bg-black/30" onClick={() => setShowSettings(false)} />
-             <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
-               <h3 className="text-lg font-semibold mb-4">Campos visibles en las tarjetas</h3>
-               <div className="space-y-3">
-                 {Object.keys(visibleFields).map((field) => (
-                   <label key={field} className="flex items-center gap-2">
-                     <input
-                       type="checkbox"
-                       checked={visibleFields[field]}
-                       onChange={(e) =>
-                         setVisibleFields({ ...visibleFields, [field]: e.target.checked })
-                       }
-                       className="h-4 w-4"
-                     />
-                     <span className="capitalize">{field}</span>
-                   </label>
-                 ))}
-               </div>
-               <div className="mt-6 flex justify-end">
-                 <button
-                   onClick={() => setShowSettings(false)}
-                   className="rounded-xl bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
-                 >
-                   Cerrar
-                 </button>
-               </div>
-             </div>
-           </div>
-         )}
-
+      {newCardColumnId && (
+        <CardEditor
+          card={{
+            id: uid(),
+            title: "",
+            description: "",
+            assignee: "",
+            dueDate: "",
+            priority: "",
+          }}
+          onClose={() => setNewCardColumnId(null)}
+          onSave={(newData) => {
+            const id = uid();
+            const newCard = {
+              id,
+              ...newData,
+              createdAt: Date.now(),
+            };
+            
+            dispatch({
+              type: ACTIONS.INIT,
+              payload: {
+                ...state,
+                cards: { ...state.cards, [id]: newCard },
+                columns: {
+                  ...state.columns,
+                  [newCardColumnId]: {
+                    ...state.columns[newCardColumnId],
+                    cardIds: [...state.columns[newCardColumnId].cardIds, id],
+                  },
+                },
+              },
+            });
+            
+            setNewCardColumnId(null);
+          }}
+        />
+      )}
+      
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowSettings(false)} />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
+            <h3 className="text-lg font-semibold mb-4">Campos visibles en las tarjetas</h3>
+            <div className="space-y-3">
+              {Object.keys(visibleFields).map((field) => (
+                <label key={field} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={visibleFields[field]}
+                    onChange={(e) =>
+                      setVisibleFields({ ...visibleFields, [field]: e.target.checked })
+                    }
+                    className="h-4 w-4"
+                  />
+                  <span className="capitalize">{field}</span>
+                </label>
+              ))}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowSettings(false)}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }
