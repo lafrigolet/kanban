@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Tailwind v4 theme definition */
+@theme {
+  /* Colors */
+  --color-primary: #2e2121;
+  --color-secondary: #f8efe7;
+  --color-testblue: #00aaff;
+
+  /* Border radius */
+  --radius-lg: 0.5rem;
+
+  /* Shadows */
+  --shadow-soft: 0 4px 10px rgba(0,0,0,0.1);
+
+  /* Animations */
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Declare named animations using Tailwind's new animation variables */
+  --animate-fadeIn: fadeIn 0.8s ease-out forwards;
+  --animate-slideUp: slideUp 0.8s ease-out;
+}
