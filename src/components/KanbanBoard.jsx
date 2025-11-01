@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Plus, Trash2, Edit3, Save, X, Calendar, User, Flag, GripVertical, Settings } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, X, Calendar, User, Flag, GripVertical, Settings, RotateCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import * as Tooltip from "@radix-ui/react-tooltip";
 
 import ColumnView from "./ColumnView";
 import CardEditor from "./CardEditor";
@@ -333,51 +334,97 @@ export default function KanbanBoard() {
     <div className="min-h-screen w-full bg-slate-50 p-6">
       <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Tablero Kanban</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          {!addingCol ? (
-            <button
-              onClick={() => setAddingCol(true)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-white shadow hover:bg-slate-800"
-            >
-              <Plus className="h-4 w-4" /> Añadir columna
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <input
-                autoFocus
-                value={newColTitle}
-                onChange={(e) => setNewColTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddColumn()}
-                placeholder="Título de la columna"
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-              />
-              <button onClick={handleAddColumn} className="rounded-xl bg-emerald-600 px-3 py-2 text-white shadow hover:bg-emerald-500">
-                <Save className="h-4 w-4" />
-              </button>
-              <button onClick={() => setAddingCol(false)} className="rounded-xl bg-slate-200 px-3 py-2 hover:bg-slate-300">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-          <button
-            onClick={() => setShowSettings(true)}
-            className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white flex items-center gap-2"
-          >
-            <Settings className="h-4 w-4" /> Configurar tarjeta
-          </button>
+        <Tooltip.Provider delayDuration={150}>
+          <div className="flex flex-wrap items-center gap-2">
+            {!addingCol ? (
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
 
-          <button
-            onClick={() => {
-              localStorage.removeItem("kanban-state");
-              dispatch({ type: ACTIONS.INIT, payload: sampleState });
-            }}
-            className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white"
-          >
-            Restablecer demo
-          </button>
-        </div>
+                  <button
+                    onClick={() => setAddingCol(true)}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-white shadow hover:bg-slate-800"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    side="bottom"
+                    sideOffset={6}
+                    className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
+                  >
+                    Añadir columna
+                    <Tooltip.Arrow className="fill-slate-800" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={newColTitle}
+                  onChange={(e) => setNewColTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddColumn()}
+                  placeholder="Título de la columna"
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                />
+                <button onClick={handleAddColumn} className="rounded-xl bg-emerald-600 px-3 py-2 text-white shadow hover:bg-emerald-500">
+                  <Save className="h-4 w-4" />
+                </button>
+                <button onClick={() => setAddingCol(false)} className="rounded-xl bg-slate-200 px-3 py-2 hover:bg-slate-300">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  side="bottom"
+                  sideOffset={6}
+                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
+                >
+                  Configurar tarjeta
+                  <Tooltip.Arrow className="fill-slate-800" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("kanban-state");
+                    dispatch({ type: ACTIONS.INIT, payload: sampleState });
+                  }}
+                  className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white"
+                >
+                  <RotateCw className="h-4 w-4" />
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  side="bottom"
+                  sideOffset={6}
+                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
+                >
+                  Restablecer demo
+                  <Tooltip.Arrow className="fill-slate-800" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+
+          </div>
+        </Tooltip.Provider>
       </header>
-
+      
       <div className="flex gap-4 overflow-x-auto pb-8">
         <AnimatePresence mode="popLayout">
           {state.columnOrder.map((columnId) => (
