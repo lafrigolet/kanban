@@ -24,7 +24,15 @@
     100% { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.1); }
+    50% { transform: scale(0.95); }
+    75% { transform: scale(1.05); }
+  }
+  
   /* Declare named animations using Tailwind's new animation variables */
   --animate-fadeIn: fadeIn 0.8s ease-out forwards;
   --animate-slideUp: slideUp 0.8s ease-out;
+  --animate-heartbeat: heartbeat 1.5s ease-in-out infinite;
 }

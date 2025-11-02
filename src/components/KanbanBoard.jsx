@@ -339,7 +339,7 @@ export default function KanbanBoard() {
           <div className="flex flex-wrap items-center gap-2">
             <Tooltip.Tip tip="Buy me a coffee">
               <button
-                className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-slate-700 hover:bg-slate-100"
+                className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-slate-700 hover:bg-slate-100 animate-heartbeat"
                 title="Take a coffee break"
               >
                 <Coffee className="h-5 w-5" />
