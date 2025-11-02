@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Plus, Trash2, Edit3, Save, X, Calendar, User, Flag, GripVertical, Settings, RotateCw } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, X, Calendar, User, Flag, GripVertical, Settings, RotateCw, Coffee } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import * as Tooltip from "@radix-ui/react-tooltip";
 
 import ColumnView from "./ColumnView";
 import CardEditor from "./CardEditor";
+import CardBuilder from "./CardBuilder";
+import * as Tooltip from "./Tooltip";
 
 /**
  * Kanban Board — React + Tailwind + Vite (JavaScript)
@@ -302,7 +303,7 @@ export default function KanbanBoard() {
   };
   const onCardDrop = (e, toColumnId, toIndex) => {
     e.preventDefault();
-    e.stopPropagation(); // 🛑 evita que el drop burbujee a otros elementos
+    e.stopPropagation(); // Evita que el drop burbujee a otros elementos
     
     // Evita ejecución doble
     if (e.dataTransfer.dropEffect === "none") return;
@@ -333,31 +334,27 @@ export default function KanbanBoard() {
   return (
     <div className="min-h-screen w-full bg-slate-50 p-6">
       <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Tablero Kanban</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Kanbanchú</h1>
         <Tooltip.Provider delayDuration={150}>
           <div className="flex flex-wrap items-center gap-2">
+            <Tooltip.Tip tip="Buy me a coffee">
+              <button
+                className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-slate-700 hover:bg-slate-100"
+                title="Take a coffee break"
+              >
+                <Coffee className="h-5 w-5" />
+              </button>
+            </Tooltip.Tip>
+            
             {!addingCol ? (
-              <Tooltip.Root>
-                <Tooltip.Trigger asChild>
-
-                  <button
-                    onClick={() => setAddingCol(true)}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-white shadow hover:bg-slate-800"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content
-                    side="bottom"
-                    sideOffset={6}
-                    className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                  >
-                    Añadir columna
-                    <Tooltip.Arrow className="fill-slate-800" />
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip.Root>
+              <Tooltip.Tip tip="Añadir columna">
+                <button
+                  onClick={() => setAddingCol(true)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-white shadow hover:bg-slate-800"
+                >
+                  <Plus className="h-4 w-4" />
+              </button>
+              </Tooltip.Tip>
             ) : (
               <div className="flex items-center gap-2">
                 <input
@@ -371,56 +368,31 @@ export default function KanbanBoard() {
                 <button onClick={handleAddColumn} className="rounded-xl bg-emerald-600 px-3 py-2 text-white shadow hover:bg-emerald-500">
                   <Save className="h-4 w-4" />
                 </button>
-                <button onClick={() => setAddingCol(false)} className="rounded-xl bg-slate-200 px-3 py-2 hover:bg-slate-300">
+                <button onClick={() => setAddingCol(false)} className="rounded-xl bg-red-600 px-3 py-2 text-white hover:bg-red-500">
                   <X className="h-4 w-4" />
                 </button>
               </div>
             )}
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
+            <Tooltip.Tip tip="Configurar tarjeta">
                 <button
                   onClick={() => setShowSettings(true)}
-                  className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white flex items-center gap-2"
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm hover:bg-white flex items-center gap-2"
                 >
                   <Settings className="h-4 w-4" />
                 </button>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="bottom"
-                  sideOffset={6}
-                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                >
-                  Configurar tarjeta
-                  <Tooltip.Arrow className="fill-slate-800" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
+            </Tooltip.Tip>
 
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
+            <Tooltip.Tip tip="Restablecer demo">
                 <button
                   onClick={() => {
                     localStorage.removeItem("kanban-state");
                     dispatch({ type: ACTIONS.INIT, payload: sampleState });
                   }}
-                  className="rounded-2xl border border-slate-300 px-4 py-2 text-sm hover:bg-white"
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm hover:bg-white"
                 >
                   <RotateCw className="h-4 w-4" />
                 </button>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="bottom"
-                  sideOffset={6}
-                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                >
-                  Restablecer demo
-                  <Tooltip.Arrow className="fill-slate-800" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-
+            </Tooltip.Tip>
           </div>
         </Tooltip.Provider>
       </header>
@@ -506,36 +478,29 @@ export default function KanbanBoard() {
       
       {showSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setShowSettings(false)} />
-          <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
-            <h3 className="text-lg font-semibold mb-4">Campos visibles en las tarjetas</h3>
-            <div className="space-y-3">
-              {Object.keys(visibleFields).map((field) => (
-                <label key={field} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={visibleFields[field]}
-                    onChange={(e) =>
-                      setVisibleFields({ ...visibleFields, [field]: e.target.checked })
-                    }
-                    className="h-4 w-4"
-                  />
-                  <span className="capitalize">{field}</span>
-                </label>
-              ))}
-            </div>
-            <div className="mt-6 flex justify-end">
+          {/* Background overlay */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowSettings(false)}
+          />
+          
+          {/* Modal content */}
+          <div className="relative z-10 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl ring-1 ring-slate-200">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-slate-700"></h2>
               <button
                 onClick={() => setShowSettings(false)}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+                className="rounded-full p-2 m-6 hover:bg-slate-100 text-slate-500"
+                title="Close"
               >
-                Cerrar
+                ✕
               </button>
             </div>
+            {/* Card Builder content */}
+            <CardBuilder />
           </div>
         </div>
       )}
-      
     </div>
   );
 }

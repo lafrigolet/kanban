@@ -21,7 +21,7 @@ import {
   AnimatePresence
 } from "framer-motion";
 
-import * as Tooltip from "@radix-ui/react-tooltip";
+import * as Tooltip from "./Tooltip";
 
 // ---------- Helpers ----------
 function classNames(...xs) {
@@ -69,143 +69,83 @@ export default function ColumnView({
         {/* ---- Header ---- */}
         <div className="flex items-center justify-between gap-2 p-3">
           <div className="flex items-center gap-2 overflow-hidden">
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
-                <GripVertical className="h-4 w-4 text-slate-400 shrink-0" />
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="bottom"
-                  sideOffset={6}
-                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                >
-                  Drag/Drop Column
-                  <Tooltip.Arrow className="fill-slate-800" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
-                {!collapsed ? (
-                  !isEditingTitle ? (
-                    <h2
-                      className="text-sm font-semibold truncate"
-                      onDoubleClick={() => setIsEditingTitle(true)}
-                    >
-                      {column.title}
-                    </h2>
-                  ) : (
-                    <input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      onBlur={() => {
-                        setIsEditingTitle(false);
-                        if (title.trim() && title !== column.title) onRename(title.trim());
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") e.currentTarget.blur();
-                        if (e.key === "Escape") {
-                          setTitle(column.title);
-                          setIsEditingTitle(false);
-                        }
-                      }}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
-                      autoFocus
-                    />
-                  )
-                ) : (
-                  <div className="text-[10px] font-semibold text-slate-500 -rotate-90 origin-left w-0 whitespace-nowrap">
+            <Tooltip.Tip tip="Drag/Drop Column">
+              <GripVertical className="h-4 w-4 text-slate-400 shrink-0" />
+            </Tooltip.Tip>
+            <Tooltip.Tip tip="Doble-click para editar">
+              {!collapsed ? (
+                !isEditingTitle ? (
+                  <h2
+                    className="text-sm font-semibold truncate"
+                    onDoubleClick={() => setIsEditingTitle(true)}
+                  >
                     {column.title}
-                  </div>
-                )}
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="bottom"
-                  sideOffset={6}
-                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                >
-                  Doble-click para editar
-                  <Tooltip.Arrow className="fill-slate-800" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
+                  </h2>
+                ) : (
+                  <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onBlur={() => {
+                      setIsEditingTitle(false);
+                      if (title.trim() && title !== column.title) onRename(title.trim());
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                      if (e.key === "Escape") {
+                        setTitle(column.title);
+                        setIsEditingTitle(false);
+                      }
+                    }}
+                    className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                    autoFocus
+                  />
+                )
+              ) : (
+                <div className="text-[10px] font-semibold text-slate-500 -rotate-90 origin-left w-0 whitespace-nowrap">
+                  {column.title}
+                </div>
+              )}
+            </Tooltip.Tip>
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
             {/* Add Card */}
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
-                {!collapsed && (
-                  <button
-                    onClick={onAddCard}
-                    className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                )}
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="bottom"
-                  sideOffset={6}
-                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                >
-                  Añadir tarjeta
-                  <Tooltip.Arrow className="fill-slate-800" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-
-            {/* Collapse Column */}
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
+            <Tooltip.Tip tip="Añadir tarjeta">
+              {!collapsed && (
                 <button
-                  onClick={() => setCollapsed((v) => !v)}
+                  onClick={onAddCard}
                   className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
                 >
-                  {collapsed ? (
-                    <ChevronRight className="h-4 w-4" />
-                  ) : (
-                    <ChevronLeft className="h-4 w-4" />
-                  )}
+                  <Plus className="h-4 w-4" />
                 </button>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="bottom"
-                  sideOffset={6}
-                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                >
-                  {collapsed ? "Expandir columna" : "Colapsar columna"}
-                  <Tooltip.Arrow className="fill-slate-800" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
+              )}
+            </Tooltip.Tip>
+
+            {/* Collapse Column */}
+            <Tooltip.Tip tip={collapsed ? "Expandir columna" : "Colapsar columna"}>
+              <button
+                onClick={() => setCollapsed((v) => !v)}
+                className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
+              >
+                {collapsed ? (
+                  <ChevronRight className="h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" />
+                )}
+              </button>
+            </Tooltip.Tip>
 
             {/* Delete Column */}
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
-                {!collapsed && (
-                  <button
-                    onClick={onDeleteColumn}
-                    className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="bottom"
-                  sideOffset={6}
-                  className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
+            <Tooltip.Tip tip="Eliminar columna">
+              {!collapsed && (
+                <button
+                  onClick={onDeleteColumn}
+                  className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-red-600"
                 >
-                  Eliminar columna
-                  <Tooltip.Arrow className="fill-slate-800" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </Tooltip.Tip>
           </div>
 
         </div>
@@ -283,48 +223,24 @@ export default function ColumnView({
                         {card.title || "(Sin título)"}
                       </h3>
                       <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Tooltip.Root>
-                          <Tooltip.Trigger asChild>
-                            <button
-                              className="rounded-lg p-1 hover:bg-slate-100"
-                              title="Editar"
-                              onClick={() => onCardEdit(card.id)}
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                          </Tooltip.Trigger>
-                          <Tooltip.Portal>
-                            <Tooltip.Content
-                              side="bottom"
-                              sideOffset={6}
-                              className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                            >
-                              Editar tarjeta
-                              <Tooltip.Arrow className="fill-slate-800" />
-                            </Tooltip.Content>
-                          </Tooltip.Portal>
-                        </Tooltip.Root>
-                        <Tooltip.Root>
-                          <Tooltip.Trigger asChild>
-                            <button
-                              className="rounded-lg p-1 hover:bg-slate-100"
-                              title="Eliminar"
-                              onClick={() => onCardDelete(card.id)}
-                            >
-                              <Trash2 className="h-4 w-4 hover:text-red-600" />
-                            </button>
-                          </Tooltip.Trigger>
-                          <Tooltip.Portal>
-                            <Tooltip.Content
-                              side="bottom"
-                              sideOffset={6}
-                              className="z-50 rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-md animate-in fade-in"
-                            >
-                              Borrar tarjeta
-                              <Tooltip.Arrow className="fill-slate-800" />
-                            </Tooltip.Content>
-                          </Tooltip.Portal>
-                        </Tooltip.Root>
+                        <Tooltip.Tip tip="Editar tarjeta">
+                          <button
+                            className="rounded-lg p-1 hover:bg-slate-100"
+                            title="Editar"
+                            onClick={() => onCardEdit(card.id)}
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Tip>
+                        <Tooltip.Tip tip="Borrar tarjeta">
+                          <button
+                            className="rounded-lg p-1 hover:bg-slate-100"
+                            title="Eliminar"
+                            onClick={() => onCardDelete(card.id)}
+                          >
+                            <Trash2 className="h-4 w-4 hover:text-red-600" />
+                          </button>
+                        </Tooltip.Tip>
                       </div>
                     </div>
 
